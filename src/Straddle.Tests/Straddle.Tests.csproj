@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+
+    <!-- Disable skipped tests warnings. -->
+    <NoWarn>$(NoWarn),xUnit1004</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.1" />
+    <PackageReference Include="xunit.analyzers" Version="1.26.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+    <ProjectReference Include="..\Straddle\Straddle.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

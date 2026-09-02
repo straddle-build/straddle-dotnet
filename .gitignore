@@ -1,0 +1,6 @@
+.prism.log
+src/*/bin/
+src/*/obj/
+/preview-artifacts/
+.vs/
+.idea/

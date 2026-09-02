@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <Authors>Straddle API</Authors>
+    <Company>Straddle API</Company>
+    <PackageTags>sdk;api;http;library</PackageTags>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Copyright>Copyright 2026 Straddle API</Copyright>
+    <PackageProjectUrl>https://www.github.com/straddle-build/straddle-dotnet</PackageProjectUrl>
+    <RepositoryUrl>https://www.github.com/straddle-build/straddle-dotnet</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Documentation -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Disable missing XML documentation warnings. -->
+    <NoWarn>$(NoWarn),1573,1591</NoWarn>
+
+    <TargetFrameworks>net8.0;netstandard2.0</TargetFrameworks>
+    <LangVersion>12</LangVersion>
+    <Configurations>Debug;Release</Configurations>
+    <Deterministic>true</Deterministic>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Disable deprecation warnings since we may reference our own deprecated symbols. -->
+    <NoWarn>$(NoWarn),0618</NoWarn>
+    <!-- Page wrappers for non-advancing schemes hold constructor parameters they never read. -->
+    <NoWarn>$(NoWarn),9113</NoWarn>
+  </PropertyGroup>
+</Project>

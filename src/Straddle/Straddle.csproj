@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Metadata -->
+    <AssemblyTitle>Straddle C#</AssemblyTitle>
+    <AssemblyName>Straddle</AssemblyName>
+    <VersionPrefix>0.1.0</VersionPrefix> <!-- x-release-please-version -->
+    <Description>The Straddle API uses resource URLs, standard HTTP methods, and JSON request and response bodies.</Description>
+    <OutputType>Library</OutputType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Straddle.Tests" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+  </ItemGroup>
+</Project>
