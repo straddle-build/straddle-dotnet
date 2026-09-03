@@ -3,7 +3,7 @@
     <!-- Metadata -->
     <AssemblyTitle>Straddle C#</AssemblyTitle>
     <AssemblyName>Straddle</AssemblyName>
-    <VersionPrefix>0.1.0</VersionPrefix> <!-- x-release-please-version -->
+    <VersionPrefix>1.0.0</VersionPrefix> <!-- x-release-please-version -->
     <Description>The Straddle API uses resource URLs, standard HTTP methods, and JSON request and response bodies.</Description>
     <OutputType>Library</OutputType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
