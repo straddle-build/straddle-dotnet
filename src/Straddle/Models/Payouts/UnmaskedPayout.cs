@@ -51,6 +51,19 @@ public sealed record class UnmaskedPayout : JsonModel
     }
 
     /// <summary>
+    /// Timestamp when this payout was created.
+    /// </summary>
+    public required DateTimeOffset CreatedAt
+    {
+        get
+        {
+            this._rawData.Freeze();
+            return this._rawData.GetNotNullStruct<DateTimeOffset>("created_at");
+        }
+        init { this._rawData.Set("created_at", value); }
+    }
+
+    /// <summary>
     /// Currency code. Only `USD` is supported.
     /// </summary>
     public required string Currency
@@ -247,16 +260,16 @@ public sealed record class UnmaskedPayout : JsonModel
     }
 
     /// <summary>
-    /// Timestamp when this payout was created.
+    /// Timestamp when this payout was last updated.
     /// </summary>
-    public DateTimeOffset? CreatedAt
+    public required DateTimeOffset UpdatedAt
     {
         get
         {
             this._rawData.Freeze();
-            return this._rawData.GetNullableStruct<DateTimeOffset>("created_at");
+            return this._rawData.GetNotNullStruct<DateTimeOffset>("updated_at");
         }
-        init { this._rawData.Set("created_at", value); }
+        init { this._rawData.Set("updated_at", value); }
     }
 
     /// <summary>
@@ -406,25 +419,13 @@ public sealed record class UnmaskedPayout : JsonModel
         }
     }
 
-    /// <summary>
-    /// Timestamp when this payout was last updated.
-    /// </summary>
-    public DateTimeOffset? UpdatedAt
-    {
-        get
-        {
-            this._rawData.Freeze();
-            return this._rawData.GetNullableStruct<DateTimeOffset>("updated_at");
-        }
-        init { this._rawData.Set("updated_at", value); }
-    }
-
     /// <inheritdoc/>
     public override void Validate()
     {
         _ = this.ID;
         _ = this.Amount;
         this.Config.Validate();
+        _ = this.CreatedAt;
         _ = this.Currency;
         _ = this.Description;
         this.Device.Validate();
@@ -442,7 +443,7 @@ public sealed record class UnmaskedPayout : JsonModel
             item.Validate();
         }
         _ = this.TraceIds;
-        _ = this.CreatedAt;
+        _ = this.UpdatedAt;
         this.CustomerDetails?.Validate();
         foreach (var item in this.Documents ?? [])
         {
@@ -457,7 +458,6 @@ public sealed record class UnmaskedPayout : JsonModel
         {
             item.Validate();
         }
-        _ = this.UpdatedAt;
     }
 
     public UnmaskedPayout() { }
