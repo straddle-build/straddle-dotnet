@@ -112,7 +112,13 @@ public abstract record class ParamsBase
                                     JsonValueKind.Null => "",
                                     JsonValueKind.True => "true",
                                     JsonValueKind.False => "false",
-                                    _ => x.GetString(),
+                                    // `GetString()` throws on any element that is not a string, so an
+                                    // array of numbers or of objects reached the wire as an exception
+                                    // rather than as a query value. `ToString()` renders a number as
+                                    // its digits and an object as its JSON text, and returns the same
+                                    // text `GetString()` does for a string.
+                                    JsonValueKind.String => x.GetString(),
+                                    _ => x.ToString(),
                                 }
                         )
                     )
@@ -163,7 +169,10 @@ public abstract record class ParamsBase
                             JsonValueKind.Null => "",
                             JsonValueKind.True => "true",
                             JsonValueKind.False => "false",
-                            _ => item.GetString(),
+                            // Same as the query fragments: `GetString()` throws on a non-string
+                            // element, so a numeric or object header item threw instead of sending.
+                            JsonValueKind.String => item.GetString(),
+                            _ => item.ToString(),
                         }
                     );
                 }
