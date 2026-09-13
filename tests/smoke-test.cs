@@ -1459,13 +1459,19 @@ internal static class SmokeProgram
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Customers.CustomerStatus
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Customers.CustomerStatus.Pending,
+                                },
                             StraddleAccountID = "smoke",
                             Types =
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Customers.CustomerType
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Customers.CustomerType.Individual,
+                                },
                         },
                         cancellationToken: cancellationToken
                     )
@@ -1745,12 +1751,18 @@ internal static class SmokeProgram
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Bridge.PaykeySource
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Bridge.PaykeySource.BankAccount,
+                                },
                             Status =
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Bridge.PaykeyStatus
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Bridge.PaykeyStatus.Pending,
+                                },
                             StraddleAccountID = "smoke",
                             UnblockEligible = true,
                         },
@@ -2781,12 +2793,18 @@ internal static class SmokeProgram
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Charges.PaymentStatus
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Charges.PaymentStatus.Created,
+                                },
                             PaymentType =
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Charges.PaymentType
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Charges.PaymentType.Charge,
+                                },
                             RequestID = "smoke",
                             SearchText = "smoke",
                             SortBy = global::Straddle.Models.Payments.SortBy.CreatedAt,
@@ -2795,12 +2813,22 @@ internal static class SmokeProgram
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Bridge.PaymentStatusReason
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle
+                                        .Models
+                                        .Bridge
+                                        .PaymentStatusReason
+                                        .InsufficientFunds,
+                                },
                             StatusSource =
                                 new System.Collections.Generic.List<global::Straddle.Core.ApiEnum<
                                     string,
                                     global::Straddle.Models.Bridge.PaymentStatusSource
-                                >>(),
+                                >>
+                                {
+                                    global::Straddle.Models.Bridge.PaymentStatusSource.Watchtower,
+                                },
                             StraddleAccountID = "smoke",
                         },
                         cancellationToken: cancellationToken
