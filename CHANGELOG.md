@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.5](https://github.com/straddle-build/straddle-dotnet/compare/v1.0.4...v1.0.5) (2026-10-07)
+
+
+### Documentation
+
+* refresh .NET SDK quickstart and usage guide ([#5](https://github.com/straddle-build/straddle-dotnet/issues/5)) ([5157026](https://github.com/straddle-build/straddle-dotnet/commit/515702655f94e758fb573e4bf1f9c1082c1f83bf))
+
 ## [1.0.4](https://github.com/straddle-build/straddle-dotnet/compare/v1.0.0...v1.0.4) (2026-09-13)
 
 
