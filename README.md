@@ -1,271 +1,129 @@
-# Straddle API
+# Straddle .NET SDK
 
-This library provides convenient access to the Straddle API from .NET applications written in C#.
+Use Straddle's Pay by Bank and Embed APIs from C#. The SDK provides typed requests and responses, async methods, authentication, and retries.
 
-The full API of this library can be found in [api.md](./api.md).
+## Install
 
-<br />
-
-## Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [API Reference](./api.md)
-- [Requests and responses](#requests-and-responses)
-- [Raw responses](#raw-responses)
-- [Authentication](#authentication)
-- [Errors](#errors)
-- [Client Options](#client-options)
-- [Retries and Timeouts](#retries-and-timeouts)
-- [Requirements](#requirements)
-- [Proxies and environments](#proxies-and-environments)
-- [Undocumented API functionality](#undocumented-api-functionality)
-- [Reference](#reference)
-- [Semantic versioning](#semantic-versioning)
-
-<br />
-
-## Installation
+Use .NET 8.0 or later, or a runtime that supports .NET Standard 2.0. Add the package to your .NET project:
 
 ```sh
 dotnet add package Straddle
 ```
 
-<br />
+The NuGet package is [`Straddle`](https://www.nuget.org/packages/Straddle). Its source lives in `straddle-build/straddle-dotnet`.
 
-## Usage
+## Make your first request
 
-```csharp
-using Straddle;
-using Straddle.Models.Accounts;
+Create a sandbox API key in the [Straddle Dashboard](https://dashboard.straddle.com), then set it in your environment. See [API authentication](https://docs.straddle.com/api-reference/authentication) for the setup steps.
 
-// Configured using the BEARER environment variable
-var client = new StraddleClient();
-
-var result = await client.Accounts.List(new AccountListParams());
+```sh
+export STRADDLE_API_KEY="YOUR_SANDBOX_API_KEY"
 ```
 
-The examples in the following sections assume a `client` configured as shown above.
-
-See the [API reference](./api.md) for every available operation.
-
-<br />
-
-## Requests and responses
-
-Each operation takes a `…Params` record and returns a model whose properties are read lazily from the raw JSON response, so an undocumented member costs nothing until it is asked for.
-
-For example, `client.Accounts.List` is called with `AccountListParams` and returns `Task<AccountList>`.
-
-Generated XML documentation carries the OpenAPI descriptions where the document supplies them.
-
-<br />
-
-## Raw responses
-
-The methods above deserialize the response and hand back the decoded value. To reach the status code, the headers, or the unparsed body, prefix the call with `WithRawResponse`:
-
-```csharp
-using Straddle.Models.Accounts;
-
-var response = await client.WithRawResponse.Accounts.List(new AccountListParams());
-var statusCode = response.StatusCode;
-var headers = response.Headers;
-
-var result = await response.Deserialize();
-
-// The underlying HttpResponseMessage is available as `response.RawMessage`.
-```
-
-<br />
-
-## Authentication
-
-Pass credentials to the generated client constructor. Environment variables are read automatically when supported by the target runtime.
-
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `Bearer` | `string` | - | Send the API key as a bearer token in the `Authorization` header. Defaults to BEARER. |
-
-Declared schemes:
-
-- `Bearer` bearer token
-
-<br />
-
-## Errors
-
-A non-success response throws a subclass of `StraddleApiException`, chosen by the status:
-
-| Status | Exception |
-| --- | --- |
-| 400 | `StraddleBadRequestException` |
-| 401 | `StraddleUnauthorizedException` |
-| 403 | `StraddleForbiddenException` |
-| 404 | `StraddleNotFoundException` |
-| 422 | `StraddleUnprocessableEntityException` |
-| 429 | `StraddleRateLimitException` |
-| 5xx | `Straddle5xxException` |
-| others | `StraddleUnexpectedStatusCodeException` |
-
-Every 4xx subclass additionally inherits from `Straddle4xxException`. Outside that hierarchy:
-
-- `StraddleIOException` — transport failures, so a connection error is never mistaken for an API error.
-- `StraddleInvalidDataException` — a successfully parsed response that does not match the expected type, thrown when the mismatched property is read.
-- `StraddleException` — base class for every exception above.
+Use the following code in a console application's `Program.cs`. It requests the first page of customers from the sandbox:
 
 ```csharp
 using System;
+using Straddle;
+using Straddle.Models.Customers;
+
+var apiKey = Environment.GetEnvironmentVariable("STRADDLE_API_KEY")
+    ?? throw new InvalidOperationException("Set STRADDLE_API_KEY to your sandbox API key.");
+
+var client = new StraddleClient
+{
+    Bearer = apiKey,
+    BaseUrl = "https://sandbox.straddle.com",
+};
+
+var page = await client.Customers.List(new CustomerListParams
+{
+    PageNumber = 1,
+    PageSize = 10,
+});
+
+Console.WriteLine($"Customers on this page: {page.Data.Count}");
+```
+
+For a SaaS platform key, add `StraddleAccountID = "YOUR_EMBEDDED_ACCOUNT_ID"` to `CustomerListParams` before running the example. This selects the embedded account whose customers you want to read. Direct accounts and marketplaces list customers without that header. See [platform account scoping](https://docs.straddle.com/guides/embed/api-headers).
+
+Run the console application:
+
+```sh
+dotnet run
+```
+
+A successful request prints the number of customers on the page. `Customers on this page: 0` is valid for an empty account. Customer records are in `page.Data`; pagination and request metadata are in `page.Meta`.
+
+The remaining examples use this `client`.
+
+## Configure authentication and environments
+
+The example passes `STRADDLE_API_KEY` explicitly as `Bearer`. If you omit `Bearer`, the client reads `BEARER`.
+
+Set `BaseUrl` explicitly to select an environment. If you omit it, the client reads `STRADDLE_BASE_URL`, then defaults to `https://sandbox.straddle.com`. Production uses `https://production.straddle.com` and a production API key. See [environments](https://docs.straddle.com/api-reference/environments).
+
+## Read additional pages
+
+List methods return one response page. Choose the next `PageNumber` using `page.Meta.TotalPages`, and keep your filters and account scope the same between requests:
+
+```csharp
+var nextPage = await client.Customers.List(new CustomerListParams
+{
+    PageNumber = 2,
+    PageSize = 10,
+});
+```
+
+Each operation takes a parameter record and returns a typed model. See the [method reference](./api.md) for each resource's filters and response types.
+
+## Handle errors
+
+Catch `StraddleApiException` for an HTTP error response. Its `StatusCode` and `ResponseBody` describe the response:
+
+```csharp
 using Straddle.Exceptions;
-using Straddle.Models.Accounts;
 
 try
 {
-    var result = await client.Accounts.List(new AccountListParams());
+    var page = await client.Customers.List(new CustomerListParams { PageSize = 10 });
 }
-catch (StraddleApiException exception)
+catch (StraddleApiException error)
 {
-    Console.WriteLine(exception.StatusCode);
-    Console.WriteLine(exception.ResponseBody);
+    Console.Error.WriteLine(error.StatusCode);
+    throw;
 }
 ```
 
-Documented error statuses: `400`, `401`, `403`, `404`, `422`, `500`.
+For a `401`, check that the key matches the selected environment. For a `403`, check the key's permissions and account scope. Connection errors raise `StraddleIOException`. See [exception types](./USAGE.md#exception-types) and [API errors](https://docs.straddle.com/api-reference/errors) for details.
 
-<br />
+## Set retries and timeouts
 
-## Client Options
+The client retries connection errors, `408`, `409`, `429`, and `5xx` responses twice by default. It uses exponential backoff and honors supported `Retry-After` values. The default timeout is one minute per attempt, so retries can extend the total request duration.
 
-Configure the generated client by setting any of these options when you create it.
-
-```csharp
-using System;
-using Straddle;
-
-// Options are init-only properties on the client.
-var client = new StraddleClient { MaxRetries = 3, Timeout = TimeSpan.FromSeconds(42) };
-
-// `WithOptions` derives a client or service that differs only in its settings, reusing the
-// same connection pool. The original is left untouched.
-var patient = client.WithOptions(options => options with { Timeout = TimeSpan.FromMinutes(5) });
-```
-
-| Option | Type | Default | Description |
-| --- | --- | --- | --- |
-| `Bearer` | `string` | `Environment.GetEnvironmentVariable("BEARER")` | Send the API key as a bearer token in the `Authorization` header. |
-| `BaseUrl` | `string` | `https://sandbox.straddle.com` | Base URL every request is sent to. Read from STRADDLE_BASE_URL when unset. |
-| `MaxRetries` | `int?` | `2` | How many times a retriable failure is retried before the call gives up. |
-| `Timeout` | `TimeSpan?` | `TimeSpan.FromMinutes(1)` | How long each request attempt may take. |
-| `HttpClient` | `HttpClient` | - | Transport every request goes through; supply your own to add a proxy or handler. |
-| `ResponseValidation` | `bool` | `false` | Whether response bodies are validated up front instead of when a property is read. |
-
-<br />
-
-## Retries and Timeouts
-
-Generated clients support request timeouts and retry temporary failures such as network errors, 408, 409, 429, and 5xx responses. Retry delays honor `Retry-After` headers when present. Tune the retry and timeout client options shown above, or override them per request.
-
-<br />
-
-## Requirements
-
-- .NET 8.0 or newer, or any runtime supporting .NET Standard 2.0
-
-<br />
-
-## Proxies and environments
-
-### Proxies
-
-Route requests through a proxy by supplying your own `HttpClient`:
+Use `WithOptions` to change settings while sharing the same HTTP connection pool:
 
 ```csharp
-using System.Net;
-using System.Net.Http;
-using Straddle;
-
-var httpClient = new HttpClient(
-    new HttpClientHandler { Proxy = new WebProxy("https://proxy.example.com:8080") }
-);
-
-var client = new StraddleClient { HttpClient = httpClient };
-```
-
-### Environments
-
-Requests go to the `straddle_api_server` environment (`https://sandbox.straddle.com`) by default. `EnvironmentUrl` declares it:
-
-```csharp
-using Straddle;
-using Straddle.Core;
-
-var client = new StraddleClient { BaseUrl = EnvironmentUrl.StraddleApiServer };
-```
-
-<br />
-
-## Undocumented API functionality
-
-The SDK is typed for the documented API, and still lets you reach past it.
-
-### Parameters
-
-Every `…Params` record has a constructor taking raw header and query dictionaries — plus a body dictionary for operations that send one — alongside the documented properties:
-
-```csharp
-using System.Collections.Generic;
-using System.Text.Json;
-using Straddle.Models.Accounts;
-
-var parameters = new AccountListParams(
-    rawHeaderData: new Dictionary<string, JsonElement>
+var page = await client
+    .WithOptions(options => options with
     {
-        { "Custom-Header", JsonSerializer.SerializeToElement(42) },
-    },
-    rawQueryData: new Dictionary<string, JsonElement>
-    {
-        { "custom_query_param", JsonSerializer.SerializeToElement(42) },
-    }
-);
+        MaxRetries = 0,
+        Timeout = TimeSpan.FromSeconds(30),
+    })
+    .Customers.List(new CustomerListParams { PageSize = 10 });
 ```
 
-The same values are readable back through the `RawHeaderData`, `RawQueryData`, and (where present) `RawBodyData` properties.
+For write operations that accept an idempotency key, set the operation's `IdempotencyKey` property. Reuse that value when retrying the same operation. See [idempotency](https://docs.straddle.com/api-reference/idempotency).
 
-A `required` property cannot be omitted from an object initializer, so setting one to an undocumented value goes through `FromRawUnchecked`, which takes the same dictionaries and skips the initializer entirely. Nested parameter records carry both forms too.
+## Reference and support
 
-### Response properties
+Use the following resources as you build your integration:
 
-A model decoded from a JSON object exposes `RawData`, an `IReadOnlyDictionary<string, JsonElement>` holding everything the server sent — including members the document never described:
+- [SDK method reference](./api.md) and [operation signatures](./reference.md).
+- [Advanced usage](./USAGE.md): client options, raw responses, proxies, and response validation.
+- [Straddle guides](https://docs.straddle.com): payment flows, sandbox testing, and API concepts.
+- [GitHub issues](https://github.com/straddle-build/straddle-dotnet/issues): SDK bugs and feature requests.
+- [Local development](./CONTRIBUTING.md) and [versioning](./VERSIONING.md): submit customizations against `scalar-next` so Scalar carries them through regeneration.
+- [Security policy](./SECURITY.md) and [Apache 2.0 license](./LICENSE).
 
-```csharp
-using System.Text.Json;
-
-// `model` is any object-shaped value decoded from a response.
-if (model.RawData.TryGetValue("my_custom_key", out JsonElement value))
-{
-    // Do something with `value`.
-}
-```
-
-### Response validation
-
-By default a response that does not match the expected type only throws `StraddleInvalidDataException` when the mismatched property is read. Call `Validate()` on a decoded model to check the whole body up front, or set `ResponseValidation = true` on the client to validate every response.
-
-<br />
-
-## Reference
-
-See `reference.md` for every generated operation signature, and `snippets.md` for a copyable version of the example above.
-
-<br />
-
-## Semantic versioning
-
-This package follows [SemVer](https://semver.org/spec/v2.0.0.html), with two classes of change released as minor versions rather than major ones:
-
-1. Changes to library internals that are technically public but neither intended nor documented for external use.
-2. Changes not expected to affect the vast majority of users in practice.
-
-See `VERSIONING.md` for how versions are chosen and released in this repository.
-
-Powered by Scalar.
+Straddle generates this SDK with Scalar and maintains repository customizations through the workflow in `VERSIONING.md`.
